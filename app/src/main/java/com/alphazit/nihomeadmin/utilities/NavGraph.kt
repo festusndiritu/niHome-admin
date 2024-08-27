@@ -16,7 +16,9 @@ import com.google.firebase.auth.FirebaseUser
 
 @Composable
 fun NavGraph(user: FirebaseUser?, navController: NavHostController) {
+
     val startRoute = if (user != null) "home" else "login"
+
     NavHost(navController = navController, startDestination = startRoute) {
         composable("login") { LoginScreen(navController) }
         composable("register") { RegisterScreen(navController) }
@@ -24,12 +26,14 @@ fun NavGraph(user: FirebaseUser?, navController: NavHostController) {
         composable("upload") { UploadScreen(navController) }
         composable("logs") { LogsScreen(navController) }
         composable("settings") { SettingsScreen(navController) }
+
+        // House details screen with the id of selected house
         composable("houseDetails/{houseId}") { backStackEntry ->
-            HouseDetailsScreen(
-                houseId = backStackEntry.arguments?.getString("houseId") ?: "",
-                navController
-            )
+            val houseId = backStackEntry.arguments?.getString("houseId") ?: ""
+            HouseDetailsScreen(houseId, navController)
         }
+
+        // Image viewer with selected houseID and selected image
         composable("pager/{houseId}/{startIndex}") { backStackEntry ->
             val houseId = backStackEntry.arguments?.getString("houseId") ?: ""
             val startIndex = backStackEntry.arguments?.getString("startIndex")?.toInt() ?: 0

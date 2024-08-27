@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
@@ -32,7 +31,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,25 +50,21 @@ import androidx.navigation.NavController
 import com.alphazit.nihomeadmin.R
 import com.alphazit.nihomeadmin.components.HouseCard
 import com.alphazit.nihomeadmin.models.HouseData
-import com.alphazit.nihomeadmin.utilities.signOut
-import com.google.firebase.Firebase
-import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
-
-    var dropDownExpanded by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-
-    var houses by remember { mutableStateOf<List<HouseData>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    var isLoading by remember { mutableStateOf(true) }
+    var showMenu by remember { mutableStateOf(false) }
+    var houses by remember { mutableStateOf<List<HouseData>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         scope.launch {
-            val firestore = Firebase.firestore
+            val firestore = FirebaseFirestore.getInstance()
             firestore.collection("houses")
                 .get()
                 .addOnSuccessListener { result ->
@@ -81,41 +75,61 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                 }
                 .addOnFailureListener {
                     isLoading = false
-                    // Handle the error if needed
+                    Toast.makeText(
+                        context,
+                        "Failed to fetch houses, please check your internet connection",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
         }
     }
+
     Scaffold(
-        modifier = modifier
-            .fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
                         text = "niHome",
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 },
                 actions = {
                     IconButton(
-                        onClick = { dropDownExpanded = true }
+                        onClick = { showMenu = true }
                     ) {
                         Icon(
                             imageVector = Icons.Default.Menu,
                             contentDescription = "menu",
-                            tint = MaterialTheme.colorScheme.onPrimary
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                     DropdownMenu(
-                        expanded = dropDownExpanded,
-                        onDismissRequest = { dropDownExpanded = false },
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false },
                         modifier = Modifier.width(180.dp)
                     ) {
                         DropdownMenuItem(
                             onClick = {
+                                navController.navigate("logs")
+                                showMenu = false
+                            },
+                            leadingIcon = {
+                                Image(
+                                    painter = painterResource(id = R.drawable.logs),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            text = {
+                                Text(text = "App Logs")
+                            }
+                        )
+                        DropdownMenuItem(
+                            onClick = {
                                 navController.navigate("settings")
-                                dropDownExpanded = false
+                                showMenu = false
                             },
                             leadingIcon = {
                                 Icon(
@@ -127,52 +141,8 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                                 Text(text = "Settings")
                             }
                         )
-                        DropdownMenuItem(
-                            onClick = {
-                                navController.navigate("logs")
-                                dropDownExpanded = false
-                            },
-                            leadingIcon = {
-                                Image(
-                                    painter = painterResource(id = R.drawable.logs),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            },
-                            text = {
-                                Text(text = "Action Logs")
-                            }
-                        )
-                        DropdownMenuItem(
-                            onClick = {
-                                signOut { success, errorMessage ->
-                                    if (!success) {
-                                        Toast.makeText(
-                                            context,
-                                            "Failed to signOut: $errorMessage",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                                dropDownExpanded = false
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
-                                    contentDescription = null
-                                )
-                            },
-                            text = {
-                                Text(text = "Logout")
-                            }
-                        )
                     }
-                },
-                colors = TopAppBarDefaults
-                    .topAppBarColors()
-                    .copy(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                }
             )
         },
         floatingActionButton = {
@@ -218,7 +188,7 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                     // Display Houses
                     LazyVerticalGrid(
                         columns = GridCells.Fixed(2),
-                        contentPadding = PaddingValues(12.dp),
+                        contentPadding = PaddingValues(4.dp),
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
@@ -229,9 +199,11 @@ fun HomeScreen(navController: NavController, modifier: Modifier = Modifier) {
                                 it.id
                             }
                         ) { house ->
-                            HouseCard(house = house, onClick = {
-                                navController.navigate("houseDetails/${house.id}")
-                            })
+                            HouseCard(house = house,
+                                onClick = {
+                                    navController.navigate("houseDetails/${house.id}")
+                                }
+                            )
                         }
                     }
                 }
