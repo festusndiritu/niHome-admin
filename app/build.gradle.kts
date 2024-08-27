@@ -66,7 +66,7 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.storage)
     implementation(libs.coil.compose)// Coil to load images asynchronously
-    implementation(libs.androidx.core.splashscreen)// Splashscreen
+    implementation(libs.androidx.core.splashscreen)// Splashscreen api
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
