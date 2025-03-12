@@ -24,8 +24,8 @@ The **niHome Admin App** is the administrative version of the **niHome House Hun
 ### Steps to Run Locally
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-repo/nihome-admin.git
-   cd nihome-admin
+   git clone https://github.com/festusndiritu/niHome-admin.git
+   cd niHome-admin
    ```
 
 2. **Open in Android Studio** and sync Gradle dependencies.
